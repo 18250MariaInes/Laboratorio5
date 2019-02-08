@@ -1,26 +1,29 @@
 package com.example.maria.laboratorio3
 
+import android.graphics.Bitmap
+
 //clase de tipo contac para los objetos instanciado en la app
 
-class contact (
+class contact {
     //atributos que deben poseer
-    private val nombre:String,
-    private val telefono: String,
-    private val correo:String
+     var id:Int=0
+     var nombre:String = ""
+     var telefono: String?=null
+     var correo:String = ""
+     //lateinit var image: Bitmap
 
-){//getter de los atributos
-    fun getnombre():String{
-        return nombre
-    }//metodo para al ser impreso en la lista solo muestra su nombre
+    constructor(){}
+    constructor(nombre: String, correo: String, telefono: String) {
+        this.nombre=nombre
+        this.correo=correo
+        this.telefono=telefono
+        /*this.image=image*/
+
+    }
     override fun toString():String{
         return this.nombre
     }
-    fun getcorreo():String{
-        return correo
-    }
-    fun gettelefono():String{
-        return telefono
-    }
+
 
 
 }

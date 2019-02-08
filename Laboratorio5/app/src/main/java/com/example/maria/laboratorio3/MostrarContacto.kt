@@ -12,7 +12,12 @@ import android.Manifest.permission.CALL_PHONE
 import android.support.v4.app.ActivityCompat
 import android.R.attr.button
 import android.net.Uri
+import android.util.Log
+import android.widget.ImageView
 import android.widget.Toast
+import com.example.maria.laboratorio3.R.id.image
+import kotlinx.android.synthetic.main.activity_agregar_contacto.*
+import kotlinx.android.synthetic.main.activity_mostrar_contacto.*
 import java.util.jar.Manifest
 
 
@@ -21,20 +26,24 @@ class MostrarContacto : AppCompatActivity() {
     lateinit var  txtcorreo: TextView
     lateinit var txtnumero: TextView
     lateinit var txtnombre: TextView
+    lateinit var imagen:ImageView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mostrar_contacto)
+        val nombre=intent.extras.getString("nombre")
+        val correo=intent.extras.getString("correo")
+        val numero=intent.extras.getString("telefono")
+        val imagen=intent.extras.getString("imagen")
         //setter de los texviews que despliegan la informacion del contacto
-        val myapp: myapplication = applicationContext as myapplication
-        val nombre= myapp.array[myapp.getUsuarioSelec()].getnombre()
-        val correo=myapp.array[myapp.getUsuarioSelec()].getcorreo()
-        val numero=myapp.array[myapp.getUsuarioSelec()].gettelefono()
+
         txtcorreo = findViewById(R.id.correoSelected)
         txtnombre=findViewById(R.id.NombreSelected)
         txtnumero=findViewById(R.id.telefonoSelected)
+        //imageViewMostrar.setImageBitmap(image)
         txtnombre.setText(nombre)
         txtcorreo.setText(correo)
         txtnumero.setText(numero)
+
 //al hacer click en el numero de telefono se puede redirige a llamarlo
         txtnumero.setOnClickListener {
             val intent = Intent(Intent.ACTION_DIAL)
@@ -60,10 +69,20 @@ class MostrarContacto : AppCompatActivity() {
 
         /*TextView nombre = (TextView) findViewById(R.id.)
         helloTextView.setText(R.string.user_greeting)*/
+
     }
 //boton para regresar a menu
     fun regresarmenu (view: View){
         val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+    }
+
+    fun editarContacto(view: View){
+        val intent=Intent(this, MostrarContacto::class.java)
+        /*intent.putExtra("nombre", nombre)
+        intent.putExtra("telefono",telefono)
+        intent.putExtra("correo", correo)*/
+
         startActivity(intent)
     }
 }

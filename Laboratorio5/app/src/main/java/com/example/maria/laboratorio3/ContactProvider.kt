@@ -17,181 +17,76 @@ import android.database.sqlite.SQLiteQueryBuilder
 
 import android.net.Uri
 import android.text.TextUtils
-class ContactProvider : ContentProvider(){
-    private var db: SQLiteDatabase? = null
-
-    /**
-     * Helper class that actually creates and manages
-     * the provider's underlying data repository.
-     */
-
-    private class DatabaseHelper internal constructor(context: Context) :
-        SQLiteOpenHelper(context,
-            DATABASE_NAME, null,
-            DATABASE_VERSION
-        ) {
-
-        override fun onCreate(db: SQLiteDatabase) {
-            db.execSQL(CREATE_DB_TABLE)
-        }
-
-        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-            db.execSQL("DROP TABLE IF EXISTS $CONTACTS_TABLE_NAME")
-            onCreate(db)
-        }
-    }
-
-    override fun onCreate(): Boolean {
-        val context = context
-        val dbHelper = DatabaseHelper(context)
-
-        /**
-         * Create a write able database which will trigger its
-         * creation if it doesn't already exist.
-         */
-
-        db = dbHelper.writableDatabase
-        return db != null
-    }
-
-    override fun insert(uri: Uri, values: ContentValues?): Uri? {
-        /**
-         * Add a new student record
-         */
-        val rowID = db!!.insert(CONTACTS_TABLE_NAME, "", values)
-
-        /**
-         * If record is added successfully
-         */
-        if (rowID > 0) {
-            val _uri = ContentUris.withAppendedId(CONTENT_URI, rowID)
-            context!!.contentResolver.notifyChange(_uri, null)
-            return _uri
-        }
-
-        throw SQLException("Failed to add a record into $uri")
-    }
-
-
-    override fun query(
-        uri: Uri, projection: Array<String>?,
-        selection: String?, selectionArgs: Array<String>?, sortOrder: String?
-    ): Cursor? {
-//        @Suppress("NAME_SHADOWING") var sortOrder = sortOrder
-        val qb = SQLiteQueryBuilder()
-        qb.tables = CONTACTS_TABLE_NAME
-
-        when (uriMatcher.match(uri)) {
-            STUDENTS -> qb.setProjectionMap(STUDENTS_PROJECTION_MAP)
-
-            STUDENT_ID -> qb.appendWhere(_ID + "=" + uri.pathSegments[1])
-        }
-
-        val c = qb.query(
-            db, projection, selection,
-            selectionArgs, null, null, sortOrder ?: NAME
-        )
-        /**
-         * register to watch a content URI for changes
-         */
-        c.setNotificationUri(context!!.contentResolver, uri)
-        return c
-    }
-
-    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int {
-        var count = 0
-        when (uriMatcher.match(uri)) {
-            STUDENTS -> count = db!!.delete(CONTACTS_TABLE_NAME, selection, selectionArgs)
-
-            STUDENT_ID -> {
-                val id = uri.pathSegments[1]
-                count = db!!.delete(
-                    CONTACTS_TABLE_NAME, _ID + " = " + id +
-                            if (!TextUtils.isEmpty(selection)) " AND ($selection)" else "", selectionArgs
-                )
-            }
-            else -> throw IllegalArgumentException("Unknown URI $uri")
-        }
-
-        context!!.contentResolver.notifyChange(uri, null)
-        return count
-    }
-
-    override fun update(
-        uri: Uri, values: ContentValues?,
-        selection: String?, selectionArgs: Array<String>?
-    ): Int {
-        var count = 0
-        when (uriMatcher.match(uri)) {
-            STUDENTS -> count = db!!.update(CONTACTS_TABLE_NAME, values, selection, selectionArgs)
-
-            STUDENT_ID -> count = db!!.update(
-                CONTACTS_TABLE_NAME, values,
-                _ID + " = " + uri.pathSegments[1] +
-                        if (!TextUtils.isEmpty(selection)) " AND ($selection)" else "", selectionArgs
-            )
-            else -> throw IllegalArgumentException("Unknown URI $uri")
-        }
-
-        context!!.contentResolver.notifyChange(uri, null)
-        return count
-    }
-
-    override fun getType(uri: Uri): String? {
-        when (uriMatcher.match(uri)) {
-            /**
-             * Get all student records
-             */
-            STUDENTS -> return "vnd.android.cursor.dir/vnd.example.students"
-            /**
-             * Get a particular student
-             */
-            STUDENT_ID -> return "vnd.android.cursor.item/vnd.example.students"
-            else -> throw IllegalArgumentException("Unsupported URI: $uri")
-        }
-    }
-
+class ContactProvider (context: Context): SQLiteOpenHelper(context, BASE_DATOS_NOMBRE, null,BASEDATOS_VER){
     companion object {
-        internal val PROVIDER_NAME = "com.example.MyApplication.ContactProvider"
-        internal val URL = "content://$PROVIDER_NAME/contacts"
-        internal val CONTENT_URI = Uri.parse(URL)
+        private val BASEDATOS_VER=1
+        private val BASE_DATOS_NOMBRE="Contactos"
 
-        internal val _ID = "_id"
-        internal val NAME = "name"
-        internal val EMAIL = "email"
-        internal val NUMBER = "number"
-        internal val PICTURE = "picture"
-
-
-        private val STUDENTS_PROJECTION_MAP: HashMap<String, String>? = null
-
-        internal val STUDENTS = 1
-        internal val STUDENT_ID = 2
-
-        internal val uriMatcher: UriMatcher
-
-        init {
-            uriMatcher = UriMatcher(UriMatcher.NO_MATCH)
-            uriMatcher.addURI(
-                PROVIDER_NAME, "students",
-                STUDENTS
-            )
-            uriMatcher.addURI(
-                PROVIDER_NAME, "students/#",
-                STUDENT_ID
-            )
-        }
-
-        internal val DATABASE_NAME = "Contacts"
-        internal val CONTACTS_TABLE_NAME = "Contacts"
-        internal val DATABASE_VERSION = 1
-        internal val CREATE_DB_TABLE = " CREATE TABLE " + CONTACTS_TABLE_NAME + /*","+ NAME +","+ EMAIL +","+ NUMBER +","+ PICTURE +*/
-                " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                " name TEXT NOT NULL, " +
-                " email TEXT NOT NULL"+
-                "number TEXT NOT NULL"+
-                "picture TEXT NOT NULL);"
+        //organizacion de la table
+        private val NOMBRE_TABLA="contacto"
+        private val ID = "Id"
+        private val NOMBRE="nombre"
+        private val TELEFONO="telefono"
+        private val CORREO="correo"
     }
 
+    override fun onCreate(db: SQLiteDatabase?) {
+        val CREATE_TABLE_QUERY=("CREATE TABLE $NOMBRE_TABLA($ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, $NOMBRE TEXT,$TELEFONO TEXT,$CORREO TEXT)")
+        db!!.execSQL(CREATE_TABLE_QUERY);
 
+    }
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        db!!.execSQL("DROP TABLE IF EXISTS $NOMBRE_TABLA")
+        onCreate(db!!)
+    }
+    //FUNCIONES PARA CRUD
+    val todoscontactos:List<contact>
+        get(){
+            val first=ArrayList<contact>()
+            val selectedQuery="SELECT * FROM $NOMBRE_TABLA"
+            val db=this.writableDatabase
+            val cursor=db.rawQuery(selectedQuery, null)
+            if (cursor.moveToFirst()){
+                do{
+                    val contact=contact()
+                    contact.id=cursor.getInt(cursor.getColumnIndex(ID))
+                    contact.nombre=cursor.getString(cursor.getColumnIndex(NOMBRE))
+                    contact.telefono=cursor.getString(cursor.getColumnIndex(TELEFONO))
+                    contact.correo=cursor.getString(cursor.getColumnIndex(CORREO))
+
+                    first.add(contact)
+                }while (cursor.moveToNext())
+            }
+            db.close()
+            return first
+        }
+
+    fun addContacto(contact: contact){
+        val db=this.writableDatabase
+        val values=ContentValues()
+        //values.put(ID, contact.id)
+        values.put(NOMBRE, contact.nombre)
+        values.put(TELEFONO, contact.telefono)
+        values.put(CORREO, contact.correo)
+
+        db.insert(NOMBRE_TABLA, null, values)
+        db.close()
+    }
+
+    fun editarContacto(contact: contact):Int{
+        val db=this.writableDatabase
+        val values=ContentValues()
+        values.put(ID, contact.id)
+        values.put(NOMBRE, contact.nombre)
+        values.put(TELEFONO, contact.telefono)
+        values.put(CORREO, contact.correo)
+
+        return db.update(NOMBRE_TABLA, values,"$ID=?", arrayOf(contact.id.toString()))
+    }
+
+    fun borrarContacto(contact: contact){
+        val db=this.writableDatabase
+        db.delete(NOMBRE_TABLA, "$ID=?", arrayOf(contact.id.toString()))
+        db.close()
+    }
 }
