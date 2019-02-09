@@ -11,7 +11,9 @@ import android.Manifest.permission
 import android.Manifest.permission.CALL_PHONE
 import android.support.v4.app.ActivityCompat
 import android.R.attr.button
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
@@ -20,7 +22,7 @@ import kotlinx.android.synthetic.main.activity_agregar_contacto.*
 import kotlinx.android.synthetic.main.activity_mostrar_contacto.*
 import java.util.jar.Manifest
 
-
+//metodo que se encarga de mostrar el contacto seleccionado por el usuario
 class MostrarContacto : AppCompatActivity() {
 
     lateinit var  txtcorreo: TextView
@@ -28,18 +30,18 @@ class MostrarContacto : AppCompatActivity() {
     lateinit var txtnombre: TextView
     lateinit var imagen:ImageView
     override fun onCreate(savedInstanceState: Bundle?) {
+        val myapp:myapplication=applicationContext as myapplication
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mostrar_contacto)
         val nombre=intent.extras.getString("nombre")
         val correo=intent.extras.getString("correo")
         val numero=intent.extras.getString("telefono")
-        val imagen=intent.extras.getString("imagen")
-        //setter de los texviews que despliegan la informacion del contacto
 
         txtcorreo = findViewById(R.id.correoSelected)
         txtnombre=findViewById(R.id.NombreSelected)
         txtnumero=findViewById(R.id.telefonoSelected)
-        //imageViewMostrar.setImageBitmap(image)
+//muestra imagen
+        imageViewMostrar.setImageBitmap(myapp.getcontactSelec().image)
         txtnombre.setText(nombre)
         txtcorreo.setText(correo)
         txtnumero.setText(numero)
@@ -56,19 +58,14 @@ class MostrarContacto : AppCompatActivity() {
             intent.type = "text/html"
             intent.data=Uri.parse("mailto:"+correo)
             intent.putExtra(Intent.EXTRA_EMAIL,correo)
-            //intent.putExtra(Intent.ACTION_SENDTO, correo)
             intent.putExtra(Intent.EXTRA_SUBJECT, "Prueba Android")
             intent.putExtra(Intent.EXTRA_TEXT, "Mi nombre es Maria Ines y mi numero es 30246448")
 
             startActivity(Intent.createChooser(intent, "Send Email"))
-            //Toast.makeText(applicationContext, "Éxito", Toast.LENGTH_LONG).show()
             intent.setAction("com.MariaLab3.CUSTOM_INTENT");
             sendBroadcast(intent)
 
         }
-
-        /*TextView nombre = (TextView) findViewById(R.id.)
-        helloTextView.setText(R.string.user_greeting)*/
 
     }
 //boton para regresar a menu
@@ -76,12 +73,10 @@ class MostrarContacto : AppCompatActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
     }
-
+//boton para editar un contacto
     fun editarContacto(view: View){
-        val intent=Intent(this, MostrarContacto::class.java)
-        /*intent.putExtra("nombre", nombre)
-        intent.putExtra("telefono",telefono)
-        intent.putExtra("correo", correo)*/
+        val intent=Intent(this, EditarContacto::class.java)
+        startActivity(intent)
 
         startActivity(intent)
     }
